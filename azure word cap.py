@@ -13,8 +13,8 @@ AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
 AZURE_API_VERSION = os.getenv("AZURE_API_VERSION")
 
-WORD_LIMIT = 2900
-
+WORD_LIMIT = 9000
+FIRST_TIME_REQUEST = False
 def extract_text_from_pdf(pdf_path):
     #Extracting text from pdf
     try:
@@ -44,10 +44,20 @@ def get_relevant_answer(context, question):
             "Content-Type": "application/json",
             "api-key": AZURE_OPENAI_KEY
         }
-        payload = {
+        if FIRST_TIME_REQUEST==False:
+            payload = {
             "messages": [
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": f"Here is the context:\n{context}\n\nAnswer the following question:\n{question} if the there is no answer in the provided context then give this specific reply 'no relevant information'"}
+            ]
+        
+        }
+            FIRST_TIME_REQUEST=True
+        else:
+            payload = {
+            "messages": [
+                {"role": "system", "content": f"based on the previous contect answer this question:\n{question}?"},
+            
             ]
         }
         response = requests.post(url, headers=headers, json=payload)
@@ -60,7 +70,7 @@ def get_relevant_answer(context, question):
 
 def main():
     print("Welcome to the PDF Document Search Application!")
-    pdf_path = './VDSPHelpAgenciesv3.0.pdf' #replace this path with the pdf you want to upload
+    pdf_path = './VDSPHelpAgenciesv3.0-1-25.pdf' #replace this path with the pdf you want to upload
 
     print("Extracting text from the PDF...\n")
     pdf_text = extract_text_from_pdf(pdf_path)
